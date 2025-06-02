@@ -47,10 +47,10 @@ class HelpIntentHandler(AbstractRequestHandler):
         return handler_input.response_builder.speak(speech_text).set_should_end_session(False).response
 
 
-class OverrideChargingModeIntentHandler(AbstractRequestHandler):
-    """Handler for overriding the charging mode."""
+class SetChargingModeIntentHandler(AbstractRequestHandler):
+    """Handler for setting the charging mode."""
     def can_handle(self, handler_input):
-        return is_intent_name("OverrideChargingModeIntent")(handler_input)
+        return is_intent_name("SetChargingModeIntent")(handler_input)
 
     def handle(self, handler_input):
         slots = handler_input.request_envelope.request.intent.slots
@@ -58,7 +58,7 @@ class OverrideChargingModeIntentHandler(AbstractRequestHandler):
         
         if mode in ["grid", "solar"]:
             set_charge_from_grid(mode == "grid")
-            speech_text = f"Charging mode overridden to {mode}."
+            speech_text = f"Charging mode is now {mode}."
         else:
             speech_text = "I didn't understand the mode. Please say 'grid' or 'solar'."
         
@@ -124,7 +124,7 @@ def handle_scheduled_event(event):
 sb = SkillBuilder()
 sb.add_request_handler(LaunchRequestHandler())
 sb.add_request_handler(HelpIntentHandler())
-sb.add_request_handler(OverrideChargingModeIntentHandler())
+sb.add_request_handler(SetChargingModeIntentHandler())
 sb.add_request_handler(CheckChargingModeIntentHandler())
 sb.add_request_handler(CancelAndStopIntentHandler())
 sb.add_request_handler(SessionEndedRequestHandler())
