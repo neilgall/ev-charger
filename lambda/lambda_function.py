@@ -2,29 +2,14 @@ from ask_sdk_core.skill_builder import SkillBuilder
 from ask_sdk_core.dispatch_components import AbstractRequestHandler
 from ask_sdk_core.utils import is_request_type, is_intent_name
 from ask_sdk_model import Response
-from andersen import AndersenA2
 import datetime
+import json
 import logging
-import os
+
+from iot_data import set_charge_mode, get_charge_mode, ChargeMode
+
 
 logging.basicConfig(level=logging.INFO)
-
-
-andersen = AndersenA2(
-    username=os.environ["ANDERSEN_USERNAME"],
-    password=os.environ["ANDERSEN_PASSWORD"],
-    device_name=os.environ["ANDERSEN_DEVICE_NAME"]
-)
-
-
-def set_charge_from_grid(charge_from_grid: bool):
-    """Set the charge mode to grid or solar."""
-    andersen.set_charge_from_grid(charge_from_grid)
-
-
-def get_charge_from_grid() -> bool:
-    """Get the current charge mode."""
-    return andersen.get_charge_from_grid()
 
 
 class LaunchRequestHandler(AbstractRequestHandler):
@@ -54,14 +39,17 @@ class SetChargingModeIntentHandler(AbstractRequestHandler):
 
     def handle(self, handler_input):
         slots = handler_input.request_envelope.request.intent.slots
-        mode = slots["mode"].value.lower()  # Expecting "grid" or "solar"
-        
-        if mode in ["grid", "solar"]:
-            set_charge_from_grid(mode == "grid")
-            speech_text = f"Charging mode is now {mode}."
-        else:
-            speech_text = "I didn't understand the mode. Please say 'grid' or 'solar'."
-        
+        mode = slots["mode"].value.lower()
+        match mode:
+            case "grid":
+                set_charge_mode(ChargeMode.GRID)
+                speech_text = "Charging mode is now grid."
+            case "solar":
+                set_charge_mode(ChargeMode.SOLAR)
+                speech_text = "Charging mode is now solar."
+            case _: 
+                speech_text = "I didn't understand the mode. Please say 'grid' or 'solar'."
+
         return handler_input.response_builder.speak(speech_text).set_should_end_session(False).response
 
 
@@ -71,8 +59,8 @@ class CheckChargingModeIntentHandler(AbstractRequestHandler):
         return is_intent_name("CheckChargingModeIntent")(handler_input)
 
     def handle(self, handler_input):
-        mode = "grid" if get_charge_from_grid() else "solar"
-        speech_text = f"The current charging mode is {mode}."
+        mode = get_charge_mode()
+        speech_text = f"The current charging mode is {mode.value}."
         return handler_input.response_builder.speak(speech_text).set_should_end_session(False).response
 
 
@@ -109,15 +97,15 @@ class FallbackIntentHandler(AbstractRequestHandler):
 def handle_scheduled_event(event):
     """Handler for Scheduled Events triggered by EventBridge."""
     current_hour = datetime.datetime.now().hour
-    mode = "grid" if 0 <= current_hour < 5 else "solar"
-    set_charge_from_grid(mode == "grid")
+    mode = ChargeMode.GRID if 0 <= current_hour < 5 else ChargeMode.SOLAR
+    set_charge_mode(mode)
     
     # Logic to control the EV charger
     logging.info(f"Scheduled event triggered. Setting charging mode to {mode}.")
     
     return {
         "statusCode": 200,
-        "body": f"Charging mode set to {mode}"
+        "body": f"Charging mode set to {mode.value}"
     }
 
 

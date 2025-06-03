@@ -1,4 +1,3 @@
-andersen-ev
 ask-sdk-core
 ask-sdk-model
-pycognito
+boto3
