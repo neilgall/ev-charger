@@ -61,7 +61,6 @@ resource "aws_lambda_function" "ev_charger_lambda" {
   environment {
     variables = {
       IOT_THING_NAME = aws_iot_thing.ev_charger.name
-      AWS_REGION     = "eu-west-1"
     }
   }
 }

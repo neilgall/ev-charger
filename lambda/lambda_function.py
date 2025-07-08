@@ -35,20 +35,18 @@ class HelpIntentHandler(AbstractRequestHandler):
 class SetChargingModeIntentHandler(AbstractRequestHandler):
     """Handler for setting the charging mode."""
     def can_handle(self, handler_input):
-        return is_intent_name("SetChargingModeIntent")(handler_input)
+        return (
+            is_intent_name("SetGridChargingIntent")(handler_input) or 
+            is_intent_name("SetSolarChargingIntent")(handler_input)
+        )
 
     def handle(self, handler_input):
-        slots = handler_input.request_envelope.request.intent.slots
-        mode = slots["mode"].value.lower()
-        match mode:
-            case "grid":
-                set_charge_mode(ChargeMode.GRID)
-                speech_text = "Charging mode is now grid."
-            case "solar":
-                set_charge_mode(ChargeMode.SOLAR)
-                speech_text = "Charging mode is now solar."
-            case _: 
-                speech_text = "I didn't understand the mode. Please say 'grid' or 'solar'."
+        if is_intent_name("SetGridChargingIntent")(handler_input):
+            set_charge_mode(ChargeMode.GRID)
+            speech_text = "Power source is now grid."
+        else:
+            set_charge_mode(ChargeMode.SOLAR)
+            speech_text = "Power source is now solar."
 
         return handler_input.response_builder.speak(speech_text).set_should_end_session(False).response
 
@@ -105,7 +103,7 @@ def handle_scheduled_event(event):
     
     return {
         "statusCode": 200,
-        "body": f"Charging mode set to {mode.value}"
+        "body": f"Charging mode set to {mode.value} based on the current time."
     }
 
 
