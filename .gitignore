@@ -1,4 +1,4 @@
 build
 package
 .terraform
-*.tfstate
+*.tfstate*
