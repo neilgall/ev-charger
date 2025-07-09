@@ -63,4 +63,14 @@ resource "aws_lambda_function" "ev_charger_lambda" {
       IOT_THING_NAME = aws_iot_thing.ev_charger.name
     }
   }
+} 
+
+resource "aws_lambda_permission" "alexa_permission" {
+  statement_id  = "AllowExecutionFromAlexa"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.ev_charger_lambda.function_name
+  principal     = "alexa-appkit.amazon.com"
+
+  # Replace with your Alexa skill ID
+  source_arn = "arn:aws:execute-api:${var.region}:${data.aws_caller_identity.current.account_id}:${var.alexa-skill-id}/*/POST/"
 }
