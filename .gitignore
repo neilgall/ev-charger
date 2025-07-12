@@ -1,4 +1,5 @@
 build
 package
+.env
 .terraform
 *.tfstate*

@@ -1,0 +1,8 @@
+andersen-ev @ https://github.com/strobejb/andersen-ev/releases/download/v0.1.20/andersen_ev-0.1.20-py3-none-any.whl
+boto3
+dotenv
+gql
+pycognito
+requests
+requests-toolbelt
+websockets
